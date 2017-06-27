@@ -169,26 +169,21 @@ object ScroogeSBT extends AutoPlugin {
     scroogeDisableStrict := false,
     scroogeScalaWarnOnJavaNSFallback := false,
     scroogeDefaultJavaNamespace := "thrift",
-    scroogeThriftSourceFolder <<= (sourceDirectory) { _ / "thrift" },
-    scroogeThriftExternalSourceFolder <<= (target) { _ / "thrift_external" },
+    scroogeThriftSourceFolder := sourceDirectory.value / "thrift",
+    scroogeThriftExternalSourceFolder := target.value / "thrift_external",
     scroogeThriftOutputFolder in Compile := (sourceManaged in Compile).value / "thrift",
     scroogeThriftOutputFolder in Test := (sourceManaged in Test).value / "thrift",
-    scroogeThriftIncludeFolders <<= (scroogeThriftSourceFolder) { Seq(_) },
+    scroogeThriftIncludeFolders := Seq(scroogeThriftSourceFolder.vlaue),
     scroogeThriftNamespaceMap := Map(),
     scroogeThriftDependencies := Seq(),
     scroogeLanguages := Seq("scala"),
     libraryDependencies += "com.twitter" %% "scrooge-core" % com.twitter.BuildInfo.version,
 
     // complete list of source files
-    scroogeThriftSources <<= scroogeThriftSourceFolder map { (srcDir) => (srcDir ** "*.thrift").get },
+    scroogeThriftSources := (scroogeThriftSourceFolder.value ** "*.thrift").get,
 
     // complete list of include directories
-    scroogeThriftIncludes <<= (
-      scroogeThriftIncludeFolders,
-      scroogeUnpackDeps
-    ) map { (includes, extDirs) =>
-      includes ++ extDirs
-    },
+    scroogeThriftIncludes := scroogeThriftIncludeFolders.value ++ scroogeUnpackDeps.value,
 
     // unpack thrift files from all dependencies in the `thrift` configuration
     //
