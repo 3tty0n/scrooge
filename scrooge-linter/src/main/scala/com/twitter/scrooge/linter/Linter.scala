@@ -402,14 +402,20 @@ class Linter(cfg: Config) {
 
   // Lint a document, returning the number of lint errors found.
   def apply(doc: Document, inputFile: String): Int = {
-
     val messages = LintRule.all(rules)(doc)
+
+    val errorCount: Int = messages.count(_.level == Error)
+    val warnCount: Int = messages.count(_.level == Warning)
 
     if (cfg.fatalWarnings) {
       messages.foreach {
         case LintMessage(msg, _) =>
           error(s"$inputFile\n$msg")
       }
+      if (errorCount + warnCount > 0 ) {
+        error("%d warnings and %d errors found".format(messages.size - errorCount, errorCount))
+      }
+      errorCount + warnCount
     } else {
       messages.foreach {
         case LintMessage(msg, Error) =>
@@ -417,15 +423,11 @@ class Linter(cfg: Config) {
         case LintMessage(msg, Warning) =>
           warning(s"$inputFile\n$msg")
       }
+      if (errorCount + warnCount > 0 ) {
+        warning("%d warnings and %d errors found".format(messages.size - errorCount, errorCount))
+      }
+      errorCount
     }
-
-    val errorCount = messages.count(_.level == Error)
-    val warnCount = messages.count(_.level == Warning)
-
-    if (errorCount + warnCount > 0 ) {
-      warning("%d warnings and %d errors found".format(messages.size - errorCount, errorCount))
-    }
-    errorCount
   }
 
   // Lint cfg.files and return the total number of lint errors found.
