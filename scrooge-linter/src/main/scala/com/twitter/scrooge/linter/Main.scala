@@ -28,7 +28,8 @@ case class Config(
   ignoreParseErrors: Boolean = false,
   includePaths: Seq[String] = Seq.empty,
   enabledRules: Seq[LintRule] = LintRule.DefaultRules,
-  verbose: Boolean = false
+  verbose: Boolean = false,
+  fatalWarnings: Boolean = false
 )
 
 
@@ -71,12 +72,12 @@ object Main {
         c.copy(includePaths = c.includePaths ++ path.split(File.pathSeparator))
       } text("path(s) to search for included thrift files (may be used multiple times)")
 
-      def findRule(ruleName: String) = LintRule.Rules.find((r) => r.name == ruleName).getOrElse({
-            println(s"Unknown rule ${ruleName}. Available: ${LintRule.Rules.map(_.name).mkString(", ")}")
+      def findRule(ruleName: String): LintRule = LintRule.Rules.find((r) => r.name == ruleName).getOrElse({
+            println(s"Unknown rule $ruleName. Available: ${LintRule.Rules.map(_.name).mkString(", ")}")
             sys.exit(1)
           })
 
-      def ruleList(rules: Seq[LintRule]) = rules.map(_.name).mkString(", ")
+      def ruleList(rules: Seq[LintRule]): String = rules.map(_.name).mkString(", ")
 
       opt[String]('e', "enable-rule") unbounded() valueName("<rule-name>") action { (ruleName, c) => {
           val rule = findRule(ruleName);
@@ -100,6 +101,10 @@ object Main {
 
       opt[Unit]("disable-strict") text ("issue warnings on non-severe parse errors instead of aborting") action { (_, c) =>
         c.copy(strict = false)
+      }
+
+      opt[Unit]("fatal-warnings") text ("convert warnings to errors") action { (_, c) =>
+        c.copy(fatalWarnings = true)
       }
 
       arg[String]("<files...>") unbounded() text ("thrift files to compile") action { (input, c) =>
