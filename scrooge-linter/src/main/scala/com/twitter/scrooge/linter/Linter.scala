@@ -413,7 +413,7 @@ class Linter(cfg: Config) {
           error(s"$inputFile\n$msg")
       }
       if (errorCount + warnCount > 0 ) {
-        error("%d warnings and %d errors found".format(messages.size - errorCount, errorCount))
+        error("%d warnings and %d errors found".format(0, messages.size))
       }
       errorCount + warnCount
     } else {
